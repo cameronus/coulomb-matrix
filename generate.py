@@ -24,13 +24,12 @@ def convert_smiles(smiles):
         m = Chem.MolFromSmiles(smile)
         m = Chem.AddHs(m)
         Chem.EmbedMolecule(m, Chem.ETKDG())
-
-        fig=Draw.MolToMPL(m)
-        contribs=Crippen.rdMolDescriptors._CalcCrippenContribs(m)
-        logps,mrs=zip(*contribs)
-        x,y,z=Draw.calcAtomGaussians(m,0.03,step=0.01,weights=logps)
-        fig.axes[0].imshow(z,interpolation='bilinear',origin='lower',extent=(0,1,0,1))
-        fig.axes[0].contour(x,y,z,20,colors='k',alpha=0.5)
+        fig = Draw.MolToMPL(m)
+        # contribs = Crippen.rdMolDescriptors._CalcCrippenContribs(m)
+        # logps, mrs = zip(*contribs)
+        # x, y, z = Draw.calcAtomGaussians(m, 0.03, step=0.01, weights=logps)
+        # fig.axes[0].imshow(z, interpolation='bilinear', origin='lower', extent=(0, 1, 0, 1))
+        # fig.axes[0].contour(x, y, z, 20, colors='k', alpha=0.5)
         fig.savefig('molecule_' + smile + '.png', bbox_inches='tight')
 
         conformer = m.GetConformer()
@@ -77,8 +76,8 @@ def generate_matrix(molecule, matrix_size):
 
 def main():
     matrices = []
-    smiles = ['C=C', '[C-]#[O+]', 'C1C2C(C(C(O2)N3C=NC4=C3N=CN=C4N)O)OP(=O)(O1)O']
-    #smiles = ['C=C', 'C(#N)Br', 'C(=O)=O', 'OCc1cc(C=O)ccc1O', 'C-]#[O+]']
+    smiles = ['C=C', 'O', '[C-]#[O+]']
+    # smiles = ['C=C', 'O', 'C(#N)Br', 'C(=O)=O', 'OCc1cc(C=O)ccc1O', '[C-]#[O+]', 'C1C2C(C(C(O2)N3C=NC4=C3N=CN=C4N)O)OP(=O)(O1)O']
     molecules, stats = convert_smiles(smiles)
     matrix_size = max(map(len, molecules))
     for index, molecule in enumerate(molecules):
