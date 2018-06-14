@@ -36,7 +36,9 @@ def convert_smiles(smiles):
         # molecule[0], molecule[2] = molecule[2], molecule[0] # rearranging to match matrix format in Hansen et al.
         # molecule[1], molecule[3] = molecule[3], molecule[1]
         bond_counts = Counter([bond.GetBondType().name for bond in m.GetBonds()])
-        print(bond_counts)
+        atom_counts = Counter([atom.GetSymbol() for atom in m.GetAtoms()])
+        stat['bonds'] = bond_counts
+        stat['atoms'] = atom_counts
         molecules.append(molecule)
         stats.append(stat)
     return molecules, stats
@@ -69,8 +71,8 @@ def generate_matrix(molecule, matrix_size, smiles):
 
 def main():
     matrices = []
-    smiles = ['C=C']
-    #smiles = ['C=C', 'C(#N)Br', 'C(=O)=O', 'OCc1cc(C=O)ccc1O']
+    smiles = ['C=C', '[C-]#[O+]']
+    #smiles = ['C=C', 'C(#N)Br', 'C(=O)=O', 'OCc1cc(C=O)ccc1O', 'C-]#[O+]']
     molecules, stats = convert_smiles(smiles)
     matrix_size = max(map(len, molecules))
     for index, molecule in enumerate(molecules):
