@@ -43,7 +43,7 @@ def convert_smiles(smiles):
         stats.append(stat)
     return molecules, stats
 
-def generate_matrix(molecule, matrix_size, smiles):
+def generate_matrix(molecule, matrix_size):
     num_atoms = len(molecule)
     coulomb_matrix = np.zeros((matrix_size, matrix_size)) # matrix of zeros of size matrix_size
     xyz_matrix = [[atom['x'], atom['y'], atom['z']] for atom in molecule] # xyz coordinates for all atoms
@@ -60,24 +60,23 @@ def generate_matrix(molecule, matrix_size, smiles):
     symbols = [atom['sym'] for atom in molecule] # get atom symbols in order
     symbols += [''] * (matrix_size - len(symbols)) # pad rest of labels with empty strings
     df = pd.DataFrame(coulomb_matrix, columns=symbols, index=symbols) # generate pandas DataFrame for visualization
-    # pd.set_option('precision', 1)
-    # df.round(1)
     pd.set_option('display.width', 150)
     pd.options.display.float_format = '{:.3f}'.format
-    print()
-    print('Molecule: ' + smiles)
-    print(df)
-    return coulomb_matrix
+    return coulomb_matrix, df
 
 def main():
     matrices = []
-    smiles = ['C=C', '[C-]#[O+]']
+    smiles = ['C=C', '[C-]#[O+]', 'CCCCCCCCCCCCCCCCOCC(COP(=O)(O)OCC1C(CC(O1)N2C=C(C(=O)NC2=O)C)N=[N+]=[N-])OCC']
     #smiles = ['C=C', 'C(#N)Br', 'C(=O)=O', 'OCc1cc(C=O)ccc1O', 'C-]#[O+]']
     molecules, stats = convert_smiles(smiles)
     matrix_size = max(map(len, molecules))
     for index, molecule in enumerate(molecules):
-        matrix = generate_matrix(molecule, matrix_size, smiles[index])
-        print(stats[index])
+        matrix, df = generate_matrix(molecule, matrix_size)
+        print()
+        print('Molecule: ' + smiles[index])
+        print('Number of atoms: ' + str(len(molecule)))
+        print('Stats: ' + str(stats[index]))
+        print(df)
         matrices.append(matrix)
     # matrices now contains the Coulomb matrices
 
