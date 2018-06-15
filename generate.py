@@ -49,23 +49,20 @@ def convert_smiles(smiles):
         mol.make3D()
 
         for index, atom in enumerate(m.GetAtoms()):
+            a = {
+                'sym': atom.GetSymbol(),
+                'num': atom.GetAtomicNum()
+            }
             if open_babel:
-                molecule.append({
-                    'sym': atom.GetSymbol(),
-                    'num': atom.GetAtomicNum(),
-                    'x': mol.atoms[index].coords[0],
-                    'y': mol.atoms[index].coords[1],
-                    'z': mol.atoms[index].coords[2]
-                })
+                a['x'] = mol.atoms[index].coords[0]
+                a['y'] = mol.atoms[index].coords[1]
+                a['z'] = mol.atoms[index].coords[2]
             else:
                 pos = conformer.GetAtomPosition(index)
-                molecule.append({
-                    'sym': atom.GetSymbol(),
-                    'num': atom.GetAtomicNum(),
-                    'x': pos.x,
-                    'y': pos.y,
-                    'z': pos.z
-                })
+                a['x'] = pos.x
+                a['y'] = pos.y
+                a['z'] = pos.z
+            molecule.append(a)
         # np.random.shuffle(molecule)
         # molecule[0], molecule[2] = molecule[2], molecule[0] # rearranging to match matrix format in Hansen et al.
         # molecule[1], molecule[3] = molecule[3], molecule[1]
