@@ -13,7 +13,11 @@ import pandas as pd
 from collections import Counter
 from rdkit.Chem import AllChem as Chem
 from rdkit.Chem import Draw
+import pybel
 # from rdkit.Chem import Crippen
+
+open_babel = True # if false, use rdkit
+omit_repetition = True # omit repeated values in matrix
 
 pd.set_option('display.width', 150)
 pd.options.display.float_format = '{:.3f}'.format
@@ -24,27 +28,44 @@ def convert_smiles(smiles):
     for smile in smiles:
         molecule = []
         stat = {}
+
+        # rdkit
         m = Chem.MolFromSmiles(smile)
         m = Chem.AddHs(m)
         Chem.EmbedMolecule(m, Chem.ETKDG())
-        fig = Draw.MolToMPL(m)
+
+        # fig = Draw.MolToMPL(m)
         # contribs = Crippen.rdMolDescriptors._CalcCrippenContribs(m)
         # logps, mrs = zip(*contribs)
         # x, y, z = Draw.calcAtomGaussians(m, 0.03, step=0.01, weights=logps)
         # fig.axes[0].imshow(z, interpolation='bilinear', origin='lower', extent=(0, 1, 0, 1))
         # fig.axes[0].contour(x, y, z, 20, colors='k', alpha=0.5)
-        fig.savefig('molecule_' + smile + '.png', bbox_inches='tight')
+        # fig.savefig('molecule_' + smile + '.png', bbox_inches='tight')
+        # conformer = m.GetConformer()
 
-        conformer = m.GetConformer()
+        # pybel
+        mol = pybel.readstring('smi', smile)
+        mol.addh()
+        mol.make3D()
+
         for index, atom in enumerate(m.GetAtoms()):
-            pos = conformer.GetAtomPosition(index)
-            molecule.append({
-                'sym': atom.GetSymbol(),
-                'num': atom.GetAtomicNum(),
-                'x': pos.x,
-                'y': pos.y,
-                'z': pos.z
-            })
+            if open_babel:
+                molecule.append({
+                    'sym': atom.GetSymbol(),
+                    'num': atom.GetAtomicNum(),
+                    'x': mol.atoms[index].coords[0],
+                    'y': mol.atoms[index].coords[1],
+                    'z': mol.atoms[index].coords[2]
+                })
+            else:
+                pos = conformer.GetAtomPosition(index)
+                molecule.append({
+                    'sym': atom.GetSymbol(),
+                    'num': atom.GetAtomicNum(),
+                    'x': pos.x,
+                    'y': pos.y,
+                    'z': pos.z
+                })
         # np.random.shuffle(molecule)
         # molecule[0], molecule[2] = molecule[2], molecule[0] # rearranging to match matrix format in Hansen et al.
         # molecule[1], molecule[3] = molecule[3], molecule[1]
@@ -67,7 +88,7 @@ def generate_matrix(molecule, matrix_size):
                 continue
             elif r == c:
                 coulomb_matrix[r][c] = 0.5 * charges[r] ** 2.4 # polynomial fit of the nuclear charges to the total energies of the free atoms
-            else:
+            elif not omit_repetition or r < c:
                 dist = np.linalg.norm(np.array(xyz_matrix[r]) - np.array(xyz_matrix[c]))
                 coulomb_matrix[r][c] = charges[r] * charges[c] / dist * 0.529177249 # nuclei pair Coulomb repulsion & Å => a.u. conversion
     symbols = [atom['sym'] for atom in molecule] # get atom symbols in order
@@ -77,9 +98,7 @@ def generate_matrix(molecule, matrix_size):
 
 def main():
     matrices = []
-    smiles = ['C=C', 'O', '[C-]#[O+]', 'C', 'CN(C)N']
-    # smiles = ['C=C', 'O', 'C(#N)Br', 'C(=O)=O', 'OCc1cc(C=O)ccc1O', '[C-]#[O+]', 'C1C2C(C(C(O2)N3C=NC4=C3N=CN=C4N)O)OP(=O)(O1)O']
-    #CCNC(=O)C1CCCN1C(=O)C(CCCN=C(N)N)NC(=O)C(CC(C)C)NC(=O)C(CC2=CN(C=N2)CC3=CC=CC=C3)NC(=O)C(CC4=CC=C(C=C4)O)NC(=O)C(CO)NC(=O)C(CC5=CNC6=CC=CC=C65)NC(=O)C(CC7=CN=CN7)NC(=O)C8CCC(=O)N8
+    smiles = ['O', '[C-]#[O+]', 'C', 'CN(C)N', 'C=C']
     molecules, stats = convert_smiles(smiles)
     matrix_size = max(map(len, molecules))
     for index, molecule in enumerate(molecules):
