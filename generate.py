@@ -13,7 +13,10 @@ import pandas as pd
 from collections import Counter
 from rdkit.Chem import AllChem as Chem
 from rdkit.Chem import Draw
-from rdkit.Chem import Crippen
+# from rdkit.Chem import Crippen
+
+pd.set_option('display.width', 150)
+pd.options.display.float_format = '{:.3f}'.format
 
 def convert_smiles(smiles):
     molecules = []
@@ -68,16 +71,15 @@ def generate_matrix(molecule, matrix_size):
                 dist = np.linalg.norm(np.array(xyz_matrix[r]) - np.array(xyz_matrix[c]))
                 coulomb_matrix[r][c] = charges[r] * charges[c] / dist * 0.529177249 # nuclei pair Coulomb repulsion & Å => a.u. conversion
     symbols = [atom['sym'] for atom in molecule] # get atom symbols in order
-    symbols += [''] * (matrix_size - len(symbols)) # pad rest of labels with empty strings
+    symbols += ['-'] * (matrix_size - len(symbols)) # pad rest of labels with empty strings
     df = pd.DataFrame(coulomb_matrix, columns=symbols, index=symbols) # generate pandas DataFrame for visualization
-    pd.set_option('display.width', 150)
-    pd.options.display.float_format = '{:.3f}'.format
     return coulomb_matrix, df
 
 def main():
     matrices = []
-    smiles = ['C=C', 'O', '[C-]#[O+]']
+    smiles = ['C=C', 'O', '[C-]#[O+]', 'C', 'CN(C)N']
     # smiles = ['C=C', 'O', 'C(#N)Br', 'C(=O)=O', 'OCc1cc(C=O)ccc1O', '[C-]#[O+]', 'C1C2C(C(C(O2)N3C=NC4=C3N=CN=C4N)O)OP(=O)(O1)O']
+    #CCNC(=O)C1CCCN1C(=O)C(CCCN=C(N)N)NC(=O)C(CC(C)C)NC(=O)C(CC2=CN(C=N2)CC3=CC=CC=C3)NC(=O)C(CC4=CC=C(C=C4)O)NC(=O)C(CO)NC(=O)C(CC5=CNC6=CC=CC=C65)NC(=O)C(CC7=CN=CN7)NC(=O)C8CCC(=O)N8
     molecules, stats = convert_smiles(smiles)
     matrix_size = max(map(len, molecules))
     for index, molecule in enumerate(molecules):
