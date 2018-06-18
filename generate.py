@@ -87,7 +87,7 @@ def generate_matrix(molecule, matrix_size):
                 coulomb_matrix[r][c] = 0.5 * charges[r] ** 2.4 # polynomial fit of the nuclear charges to the total energies of the free atoms
             elif not omit_repetition or r < c:
                 dist = np.linalg.norm(np.array(xyz_matrix[r]) - np.array(xyz_matrix[c]))
-                coulomb_matrix[r][c] = charges[r] * charges[c] / dist * 0.529177249 # nuclei pair Coulomb repulsion & Å => a.u. conversion
+                coulomb_matrix[r][c] = charges[r] * charges[c] / dist * 0.529177249 # nuclei pair Coulomb repulsion & Angstrom => a.u. conversion
     symbols = [atom['sym'] for atom in molecule] # get atom symbols in order
     symbols += ['-'] * (matrix_size - len(symbols)) # pad rest of labels with empty strings
     df = pd.DataFrame(coulomb_matrix, columns=symbols, index=symbols) # generate pandas DataFrame for visualization
