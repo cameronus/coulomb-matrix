@@ -33,6 +33,7 @@ def convert_smiles(smiles):
         m = Chem.MolFromSmiles(smile)
         m = Chem.AddHs(m)
         Chem.EmbedMolecule(m, Chem.ETKDG())
+        conformer = m.GetConformer()
 
         # fig = Draw.MolToMPL(m)
         # contribs = Crippen.rdMolDescriptors._CalcCrippenContribs(m)
@@ -41,7 +42,6 @@ def convert_smiles(smiles):
         # fig.axes[0].imshow(z, interpolation='bilinear', origin='lower', extent=(0, 1, 0, 1))
         # fig.axes[0].contour(x, y, z, 20, colors='k', alpha=0.5)
         # fig.savefig('molecule_' + smile + '.png', bbox_inches='tight')
-        # conformer = m.GetConformer()
 
         # pybel
         mol = pybel.readstring('smi', smile)
